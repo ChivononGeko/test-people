@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - '${PORT}:${PORT}'
+    environment:
+      - PORT=${PORT}
+      - POSTGRES_URL=${POSTGRES_URL}
+    depends_on:
+      - db
+    volumes:
+      - ./migrations:/app/migrations
+      - ./wait-for-it.sh:/app/wait-for-it.sh
+    command: ['/app/wait-for-it.sh', 'db:5432', '--', './main']
+
+  db:
+    image: postgres:15
+    environment:
+      DB_HOST: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: people_db
+    ports:
+      - '5432:5432'
