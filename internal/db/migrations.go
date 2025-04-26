@@ -9,8 +9,6 @@ import (
 )
 
 func RunMigrations(dsn string, migrationsPath string) error {
-	fmt.Println("Using DSN:", dsn)
-
 	m, err := migrate.New(
 		fmt.Sprintf("file://%s", migrationsPath),
 		dsn,

@@ -15,10 +15,14 @@ import (
 // @host            localhost:8080
 // @BasePath        /
 func main() {
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("Couldn't install configurations", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	slog.Info("Successful configuration installation✅")
 
-	slog.Info("Connecting to database...")
-	conn, err := db.NewPostgresConnection(cfg)
+	conn, err := db.NewPostgresConnection(*cfg)
 	if err != nil {
 		slog.Error("Failed to connect to database", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -28,17 +32,16 @@ func main() {
 			slog.Warn("Failed to close db connection", slog.String("error", err.Error()))
 		}
 	}()
+	slog.Info("Successful connection to database✅")
 
-	slog.Info("Running database migrations...")
 	if err := db.RunMigrations(cfg.Postgres, "/app/migrations"); err != nil {
 		slog.Error("Migration error", slog.String("error", err.Error()))
 		os.Exit(1)
-	} else {
-		slog.Info("Migrations applied successfully ")
 	}
+	slog.Info("Migrations applied successfully✅")
 
-	slog.Info("Starting server...")
-	srv := server.New(cfg, conn)
+	slog.Info("Starting server🚀...", "port", cfg.Port)
+	srv := server.New(*cfg, conn)
 	if err := srv.Start(); err != nil {
 		slog.Error("Failed to start server", slog.String("error", err.Error()))
 		os.Exit(1)
